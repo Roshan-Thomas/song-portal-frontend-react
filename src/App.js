@@ -1,8 +1,13 @@
+import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import './App.css';
+import abi from "./utils/SongPortal.json";
 
 export default function App() {
   const [currentAccount, setCurrentAccount] = useState("");
+
+  const contractAddress = "0x023E55D486a697612d3Bfdf289Be1ED4C86B3232"
+  const contractABI = abi.abi;
 
   const checkIfWalledIsConnected = async () => {
     try {
@@ -48,6 +53,34 @@ export default function App() {
     }
   }
 
+  const song = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const songPortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        let count = await songPortalContract.getTotalSongs();
+        console.log("Retrieved total song(s) count...", count.toNumber());
+
+        const songTxn = await songPortalContract.song();
+        console.log("Mining...", songTxn.hash);
+
+        await songTxn.wait();
+        console.log("Mined -- ", songTxn.hash);
+
+        count = await songPortalContract.getTotalSongs();
+        console.log("Retrieved total song(s) count...", count.toNumber());
+      } else {
+        console.log("Ethereum object doesnt exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     checkIfWalledIsConnected();
   }, [])
@@ -62,11 +95,11 @@ export default function App() {
         </div>
 
         <div className="bio">
-        I am farza and I worked on self-driving cars so that's pretty cool right? Connect your Ethereum wallet and wave at me!
+        I am Roshan and I am an undergraduate student. Connect your Ethereum wallet and upload your faviorite song!
         </div>
 
-        <button className="waveButton" onClick={null}>
-          Wave at Me
+        <button className="waveButton" onClick={song}>
+          Upload Song
         </button>
 
         {/*
